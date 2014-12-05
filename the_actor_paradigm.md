@@ -17,8 +17,8 @@ Let's have a look at the basic building blocks behind the Actor paradigm and the
 At the very core of the Actor paradigm are the actor themselves and the messages they can send and receive.
 Actors are the small unit of work.
 They are intenden to be stateless and only send messages as their side-effect.
-Actors are long-lived objects whereas messages live just long enough to be consumed by an actor. To overcome this disparity, actors have a _mailbox_ which managed by the underlying system. 
-An actor is guaranteed to only process a single message at a time. This means that within an actor, there is no concurrency at all. 
+Actors are long-lived objects whereas messages live just long enough to be consumed by an actor. To overcome this disparity, actors have a _mailbox_ which managed by the underlying system.
+An actor is guaranteed to only process a single message at a time. This means that within an actor, there is no concurrency at all.
 One important property that the messages have to fulfil to make this viable, is that they are to be immutable. Once a message is out, there is no going back or changing it mid-flight.
 You can imagine a system of small actors to work a like a little factory where co-workers send eachother sealed envelops with orders or information.
 
