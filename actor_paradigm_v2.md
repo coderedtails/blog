@@ -40,13 +40,16 @@ One important property that the messages have to fulfil to make this viable, is 
 You can imagine an Actor system like a little factory where co-workers send each other sealed envelops with orders or information.
 Each works in isolation based on the information he has.
 
-## Simple abstractions
+## Actor conversations for beginners
 So much for the basic ideas of the **Actor Model**. Let's look at some code using Scala/Javas framework **Akka.**
 
 One striking feature of Akkas implementation of the   **Actor Model** is its clean, minimal abstraction.
 Below you can see a simple Akka Actor named `Bob` that will send a `Greeting` to an `Anna` Actor when he gets a `SayHello` message:
 
 ```scala
+case object SayHello
+case object Greeting(message: String)
+
 class BobActor extends Actor {
 
   val anna = context.actorOf(Props[AnnaActor], name = "anna")
@@ -55,14 +58,53 @@ class BobActor extends Actor {
     case _ => unhandled(message)
   }
 }
+
+class AnnaActor extends Actor {
+  def receive = {
+    case Greeting(message) => log.info(s"I was greeted with '$mesasge'" )
+    case _ => unhandled(message)
+  }
+}
 ```
 
-* messages are sent with !
-* "questions", where an anser is exected are sent with ? and return a Future
-* Sending can take any object.
-* Receiving is exahaustive or will result in an undhandled message
-* the recipient of the message is either created on the fly with actorFor(...)...
-* ...for looked-up using a ActorSelector (URI) in the ActorSystem
+All work happens in the `receive(message: Any)` method.
+It takes `Any` as a parameter, which means you can send your actors any message you want!
+
+To send an actor a message, you first must get a reference to it.
+In this case we create the `anna` Actor on the fly during construction.
+An important aspect here is maintaining abstraction. Even though we the `actorOf` method takes the class `AnnaActor` it will only return an `ActorRef` (_hidden a little bit behind Scalas type inference_)!
+Once we have an `ActorRef` pointing to an `AnnaActor`, all we have to do is _tell_ it something.
+In Scala we are allowed to have fairly arbitrary methods names, so _tell_ is shortened to a simple `!`.
+Here, `BobActor` creates a new instance of the immutable case-object `Greeting(message: String)` with the greeting `"Hi Anna!"` and sends it on its way.
+
+`BobActor` and `AnnaActor` model persons, and as such should be able to almost have a conversation. Lets extend `BobActor` to _ask_ `AnnaActor` if she knows of any current acting giggs:
+
+
+```scala
+case object SayHello
+case object Greeting(message: String)
+case object ActingGig
+case object Answer(message: String)
+
+class BobActor extends Actor {
+
+  val anna = context.actorOf(Props[AnnaActor], name = "anna")
+  def receive = {
+    case SayHello => anna ! Greeting("Hi Anna!")
+    case Fired  => askAnnAboutJob()
+    case _ => unhandled(message)
+  }
+
+  def askAnnaAoutJob = {
+     val response = (anna ? ActingGig).mapTo[Answer]
+
+     response onComplete {
+       case Success(answer) => log.info(s"Anna said $answer.message")
+       case Failure(t) => println("Something broke...")
+     }
+  }
+}
+```
 
 ## Letting go
 Handling failure in a distributed, concurrent system is hard.
