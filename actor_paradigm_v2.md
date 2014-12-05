@@ -34,15 +34,36 @@ principle of statelessness and immutability.
 
 At the very core of the **Actor model** are the actors themselves and the messages they can send and receive.
 Actors are intended to be stateless and the only perceivable side-effect should be messages as their side-effect.
-They are long-lived objects whereas messages live just long enough to be consumed by an actor. To overcome this disparity, actors have a _mailbox_ which managed by the underlying system.
+They are long-lived objects whereas messages live just long enough to be consumed by an actor. To overcome this disparity, actors have a _mailbox_ which is managed by the underlying system.
 An actor is guaranteed to only process a single message at a time. This means that within an actor, there is no concurrency at all.
 One important property that the messages have to fulfil to make this viable, is that they are to be immutable. Once a message is out, there is no going back or changing it mid-flight.
 You can imagine an Actor system like a little factory where co-workers send each other sealed envelops with orders or information.
 Each works in isolation based on the information he has.
 
-##  
-<Show a tiny example of an actor sending a message to another ractor>
+## Simple abstractions
+So much for the basic ideas of the **Actor Model**. Let's look at some code using Scala/Javas framework **Akka.**
+
+One striking feature of Akkas implementation of the   **Actor Model** is its clean, minimal abstraction.
+Below you can see a simple Akka Actor named `Bob` that will send a `Greeting` to an `Anna` Actor when he gets a `SayHello` message:
+
+```scala
+class BobActor extends Actor {
+
+  val anna = context.actorOf(Props[AnnaActor], name = "anna")
+  def receive = {
+    case SayHello => anna ! Greeting("Hi Anna!")
+    case _ => unhandled(message)
+  }
+}
+```
+
+* messages are sent with !
+* "questions", where an anser is exected are sent with ? and return a Future
+* Sending can take any object.
+* Receiving is exahaustive or will result in an undhandled message
+* the recipient of the message is either created on the fly with actorFor(...)...
+* ...for looked-up using a ActorSelector (URI) in the ActorSystem
 
 ## Letting go
-
-Show an example of a supervisior in Akka
+Handling failure in a distributed, concurrent system is hard.
+The Actor
