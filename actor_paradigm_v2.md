@@ -77,7 +77,7 @@ Once we have an `ActorRef` pointing to an `AnnaActor`, all we have to do is _tel
 In Scala we are allowed to have fairly arbitrary methods names, so _tell_ is shortened to a simple `!`.
 Here, `BobActor` creates a new instance of the immutable case-object `Greeting(message: String)` with the greeting `"Hi Anna!"` and sends it on its way.
 
-`BobActor` and `AnnaActor` model persons, and as such should be able to almost have a conversation. Lets extend `BobActor` to _ask_ `AnnaActor` if she knows of any current acting giggs:
+`BobActor` and `AnnaActor` model persons and as such should be able to almost have a conversation. Lets extend `BobActor` to _ask_ `AnnaActor` if she knows of any current acting giggs:
 
 
 ```scala
@@ -91,17 +91,35 @@ class BobActor extends Actor {
   val anna = context.actorOf(Props[AnnaActor], name = "anna")
   def receive = {
     case SayHello => anna ! Greeting("Hi Anna!")
-    case Fired  => askAnnAboutJob()
+    case Fired  => askAnnAboutGig()
     case _ => unhandled(message)
   }
 
-  def askAnnaAoutJob = {
+  def askAnnaAboutGig = {
      val response = (anna ? ActingGig).mapTo[Answer]
 
      response onComplete {
        case Success(answer) => log.info(s"Anna said $answer.message")
        case Failure(t) => println("Something broke...")
      }
+  }
+}
+```
+
+And this is how `AnnaActor` would respond to that message using the `sender` method to get an `ActorRef` of the current message:
+```scala
+class AnnaActor extends Actor {
+  val random = new Random
+  def receive = {
+    case Greeting(message) => log.info(s"I was greeted with '$mesasge'" )
+    case ActingGig => {
+       if random.nextBoolean {
+         sender ! Answer("Sure, there is an opening for the Globe Theater")
+       } else {
+         sender ! Answer("Sorry, I have no acting gigs.")
+       }
+    }
+    case _ => unhandled(message)
   }
 }
 ```
