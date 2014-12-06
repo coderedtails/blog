@@ -1,4 +1,6 @@
 # Looking at concurrency through the lens of Actors
+> Figure out a better title
+
 Concurrency has become more and more relevant over the last few years.
 Smartphones makers have continuously increased the number of cores in their package,
 firmly cementing _multitasking_ and _multi-processing_ in our everyday life.
@@ -129,9 +131,10 @@ Let's have now move on to a topic where the **Actor Model** has a refreshing new
 
 ## Letting go
 > Improve the wording in this section. Clean up the end...
-Handling error cases is hard. Handling them elegantly is harder.
-Doing it in a distributed, concurrent application is among the hardest.
 > possibly add an example
+
+Error handling cases is hard. Handling errors elegantly is harder.
+Doing it in a distributed, concurrent application is among the hardest.
 
 Akka has a very interesting approach to error handling: let it fail.
 From time to time actors will encounter problems, like an unplugged network cable when talking to a 3. party or a failing database that that won't take any new connections.
@@ -160,13 +163,13 @@ Each of them could have their own agent that gives them `JobMessages`, but that 
 
 This is an area where the **Actor Model** shines.
 Since actors don't hold state there is no difference in sending a message to an actor A or actor B as long as both fulfil the same job.
-This allows us to have an entire swarm of actors just waiting to receive a message! As far as the sender is concerned, he sent the message to *any* of the right actors. Which one ultimatly does the work is of no relevance.
+This allows us to have an entire swarm of actors just waiting to receive a message! As far as the sender is concerned, he sent the message to *any* of the right actors. Which one ultimately does the work is of no relevance.
 
 Akka provides `Routes` for this. You can write your own, but the ones that come out of the box cover most of the cases.
 The nature of these routes allows you to adapt dispatching messages to your actors. Here are some of the more interesting `Routes`:
 * `RoundRobinRoutingLogic`: each of the actors in the pool just takes turns. Good for jobs that will roughly take the same time distributing the load evenly.
 * `SmallestMailboxRoutingLogic`: The time for the task may vary so assign the message to the actor with the least pending messages to keep the load approximately even.
-* `ScatterGatherFirstCompletedRoute`: Your task is idempotent and latency critical, so have all actors deal with it and the original sender gets the first response that comes through.
+* `ScatterGatherFirstCompletedRouteLogic`: Your task is idempotent and latency critical, so have all actors deal with it and the original sender gets the first response that comes through.
 
 In our example such a `Route` would be the agent.
 Were we to use a `RoundRobinRoutingLogic` then all our actors would be treated equally.  In most cases this probably safe initial approach.
@@ -174,3 +177,9 @@ Were we to use a `RoundRobinRoutingLogic` then all our actors would be treated e
 Were we to use a `SmallestMailboxRoutingLogic` then our agent would take into account that some `JobMessages` (*acting gings*) such as "Filming Avatar" take longer than filming a Kellogs comercial.
 Faster actors with a shorter mailbox will thus be scheduled with a higher priority.
 This should reduce the latency in a system with variable task runtime.
+
+Using the `ScatterGatherFirstCompleteRouteLogic` makes no sense for individual human actors. But think about an actor being a production company. A client such as Kellogs will put in a request for a finished ad, and multiple `ProductionCompanyActors` will get the task.
+Whoever finishes first will see his ad aired during halftime at the Super Bowl.
+Though fairly inefficient from a resource perspective, this promise the lowest latency for the orignal sender of the messages.
+
+Akka makes it possible to configure such `Routes` in a configuration file, which gives us a lot of power to adopt different strategies for individual parts of system and thus providing the right balance between latency and ressource utilisation.
