@@ -124,6 +124,26 @@ class AnnaActor extends Actor {
 }
 ```
 
+That completes our brief overview of how to use Actors within Akka.
+Let's have now move on to a topic where the **Actor Model** has a refreshing new approach: failure.
+
 ## Letting go
-Handling failure in a distributed, concurrent system is hard.
-The Actor
+Handling error cases is hard. Handling them elegantly is harder.
+Doing it in a distributed, concurrent application is among the hardest.
+
+Akka has a very interesting approach to error handling: let it fail.
+From time to time actors will encounter problems, like an unplugged network cable when talking to a 3. party or a failing database that that won't take any new connections.
+Usually, such problems are solved locally, by catching some kind of exception, logging and more often than not, re-throwing an exception.
+After all, what should we do?
+
+Akkas approach on the other hand introduces clear semantics on what is supposed to happen: each actor has a supervisor that gets to decide what to do.
+The action to be taken can be one of four:
+  * Escalate: _This_ supervisor can't decide, so escalate the issue (_akin to re-throwing an exception_)
+  * Restart: Discard the actor and create a fresh one to replace him
+  * Resume: You can't win them all. Drop the message and proceed with the next one in the mailbox.
+  * Stop: Discontinue processing and remove the actor.
+
+Further more, there are to _SupervisionStrategies_ that are to be applied: `OneForOneStrategy` or `AllForOneStrategy`.
+The difference in these strategies is in how far an _action_ is going to reach:
+  * `OneForOneStrategy` will apply the action only to the failing actor
+  * `AllForOneStrategy` will apply to **all** of the supervised sibblings, whether they failed themselves or not
