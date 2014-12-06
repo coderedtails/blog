@@ -14,7 +14,7 @@ Even though you can probably hum along to your Spotify playlist, you are not con
 Its pure 'audible' memory.
 
 There are multiple approaches to handling concurrency being used today.
-I'd like to give you an overview of the **Actor Model**, which has come and gone out of fashion but is undergoing a resurgance with Akka on the JVM.
+I'd like to give you an overview of the **Actor Model**, which has come and gone out of fashion but is undergoing a resurgence with Akka on the JVM.
 The most interesting aspect of the **Actor Model** is that its core ideas allow us to *think* about concurrency in a different way than before.
 
 ## The approaches so far...
@@ -128,15 +128,17 @@ That completes our brief overview of how to use Actors within Akka.
 Let's have now move on to a topic where the **Actor Model** has a refreshing new approach: failure.
 
 ## Letting go
+> Improve the wording in this section. Clean up the end...
 Handling error cases is hard. Handling them elegantly is harder.
 Doing it in a distributed, concurrent application is among the hardest.
+> possibly add an example
 
 Akka has a very interesting approach to error handling: let it fail.
 From time to time actors will encounter problems, like an unplugged network cable when talking to a 3. party or a failing database that that won't take any new connections.
 Usually, such problems are solved locally, by catching some kind of exception, logging and more often than not, re-throwing an exception.
 After all, what should we do?
 
-Akkas approach on the other hand introduces clear semantics on what is supposed to happen: each actor has a supervisor that gets to decide what to do.
+Akkas approach on the other hand introduces clear semantics on what is supposed to happen: each actor has a supervisor that gets to decide what to do upon failure of a sibling.
 The action to be taken can be one of four:
   * Escalate: _This_ supervisor can't decide, so escalate the issue (_akin to re-throwing an exception_)
   * Restart: Discard the actor and create a fresh one to replace him
@@ -146,4 +148,29 @@ The action to be taken can be one of four:
 Further more, there are to _SupervisionStrategies_ that are to be applied: `OneForOneStrategy` or `AllForOneStrategy`.
 The difference in these strategies is in how far an _action_ is going to reach:
   * `OneForOneStrategy` will apply the action only to the failing actor
-  * `AllForOneStrategy` will apply to **all** of the supervised sibblings, whether they failed themselves or not
+  * `AllForOneStrategy` will apply to **all** of the supervised siblings, whether they failed themselves or not
+
+What makes this approach so interesting is that it makes error handling explicit yet concise. The wording `Escalate`, `Resume`, `Supervisior`, `OneForOneStrategy` perfectly fits into the domain.
+It also allows you to handle all failures relevant to an actor in a single place due to the messaging nature of the model you can get retries out of the box.
+
+#On the Scenic Route
+Lets assume for a moment that `BobActor` and `AnnaActor` or not the only actors in our system. Let's go as far as assuming that we have 5 `BobActor` and `AnnaActors` each. They are perfect clones, so we don't care which of them takes up our acting gig.
+
+Each of them could have their own agent that gives them `JobMessages`, but that would mean that some of the Actors go underutilzed depending on whoever tells their agent about new gigs.
+
+This is an area where the **Actor Model** shines.
+Since actors don't hold state there is no difference in sending a message to an actor A or actor B as long as both fulfil the same job.
+This allows us to have an entire swarm of actors just waiting to receive a message! As far as the sender is concerned, he sent the message to *any* of the right actors. Which one ultimatly does the work is of no relevance.
+
+Akka provides `Routes` for this. You can write your own, but the ones that come out of the box cover most of the cases.
+The nature of these routes allows you to adapt dispatching messages to your actors. Here are some of the more interesting `Routes`:
+* `RoundRobinRoutingLogic`: each of the actors in the pool just takes turns. Good for jobs that will roughly take the same time distributing the load evenly.
+* `SmallestMailboxRoutingLogic`: The time for the task may vary so assign the message to the actor with the least pending messages to keep the load approximately even.
+* `ScatterGatherFirstCompletedRoute`: Your task is idempotent and latency critical, so have all actors deal with it and the original sender gets the first response that comes through.
+
+In our example such a `Route` would be the agent.
+Were we to use a `RoundRobinRoutingLogic` then all our actors would be treated equally.  In most cases this probably safe initial approach.
+
+Were we to use a `SmallestMailboxRoutingLogic` then our agent would take into account that some `JobMessages` (*acting gings*) such as "Filming Avatar" take longer than filming a Kellogs comercial.
+Faster actors with a shorter mailbox will thus be scheduled with a higher priority.
+This should reduce the latency in a system with variable task runtime.
