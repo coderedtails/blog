@@ -42,15 +42,15 @@ This means that within an actor, there is no concurrency at all.
 One important property that the messages have to fulfil to make this viable, is that they are to be immutable.
 Once a message is out, there is no going back or changing it mid-flight.
 You can imagine an Actor system like a little factory where co-workers send each other sealed envelops with orders or information.
-Each works in isolation based on the information he has locally.
+Each works in isolation based on the information he has.
 
 ## Actor conversations for beginners
 
 So much for the basic ideas of the **Actor Model**.
 Let's look at some code using Scala/Javas framework **Akka**.
 
-One striking feature of Akkas implementation of the **Actor Model** is its clean, minimal abstraction.
-Below you can see a simple Akka Actor named `Bob` that will send a `Greeting` to an `Anna` Actor when he gets a `SayHello` message:
+One striking feature of Akkas implementation of the **Actor Model** is its clean, minimal interface.
+Below you can see a simple Akka Actor named `Bob` that will send a `Greeting` to an `Anna` Actor when he receives a `SayHello` message:
 
     case object SayHello
     case object Greeting(message: String)
@@ -76,11 +76,11 @@ All work happens in the `receive(message: Any)` method.
 It takes `Any` as a parameter, which means you can send your actors any message you want!
 
 To send an actor a message, you first must get a reference to it.
-In this case we create the `anna` Actor on the fly during construction.
+In this case we create the `anna` Actor on the fly during initialization.
 An important aspect here is maintaining abstraction.
-Even though we the `actorOf` method takes the class `AnnaActor` it will only return an `ActorRef` (*hidden a little bit behind Scalas type inference*)! Once we have an `ActorRef` pointing to an `AnnaActor`, all we have to do is *tell* it something.
+Even though we the `actorOf` method takes the class `AnnaActor` as a parameter it will only return an `ActorRef` (*hidden a little bit behind Scalas type inference*)! Once we have an `ActorRef` pointing to an `AnnaActor`, all we have to do is *tell* it something.
 In Scala we are allowed to have fairly arbitrary methods names, so *tell* is shortened to a simple `!`.
-Here, `BobActor` creates a new instance of the immutable case-object `Greeting(message: String)` with the greeting `"Hi Anna!"` and sends it on its way.
+In the above example `BobActor` creates a new instance of the immutable case-object `Greeting(message: String)` with the greeting `"Hi Anna!"` and sends it on its way.
 
 `BobActor` and `AnnaActor` model persons and as such should be able to almost have a conversation.
 Lets extend `BobActor` to *ask* `AnnaActor` if she knows of any current acting jobs:
@@ -104,11 +104,12 @@ Lets extend `BobActor` to *ask* `AnnaActor` if she knows of any current acting j
 
          response onComplete {
            case Success(answer) => log.info(s"Anna said $answer.message")
-           case Failure(t) => println("Something broke...")
+           case Failure(t) => log.error("Something broke...")
          }
       }
     }
 
+When `anna` responds with an `Answer` the `onComplete` callback will be triggered and Bob will log Annas response.
 
 And this is how `AnnaActor` would respond to that message using the `sender` method to get an `ActorRef` of the current message:
 
@@ -133,17 +134,12 @@ Let's have now move on to a topic where the **Actor Model** has a refreshing new
 
 ## Letting go
 
-> Improve the wording in this section.
-Clean up the end...
-possibly add an example
-
-Error handling cases is hard.
+Handling errors is hard.
 Handling errors elegantly is harder.
-Doing it in a distributed, concurrent application is among the hardest.
+Doing so in a distributed, concurrent application is among the hardest.
 
 Akka has a very interesting approach to error handling: let it fail.
-From time to time actors will encounter problems, like an unplugged network cable when talking to a 3.
-party or a failing database that that won't take any new connections.
+From time to time actors will encounter problems, like an unplugged network cable when talking to a 3. party or a failing database that that won't take any new connections.
 Usually, such problems are solved locally, by catching some kind of exception, logging and more often than not, re-throwing an exception.
 After all, what should we do?
 
@@ -155,15 +151,19 @@ The action to be taken can be one of four:
 *   Resume: You can't win them all. Drop the message and proceed with the next one in the mailbox.
 *   Stop: Discontinue processing and remove the actor.
 
-Further more, there are to *SupervisionStrategies* that are to be applied: `OneForOneStrategy` or `AllForOneStrategy`.
+Further more, there are two *SupervisionStrategies* that are applied: `OneForOneStrategy` or `AllForOneStrategy`.
 The difference in these strategies is in how far an *action* is going to reach:
 
 *   `OneForOneStrategy` will apply the action only to the failing actor.
 *   `AllForOneStrategy` will apply to **all** of the supervised siblings, whether they failed themselves or not.
 
+`AllForOneStrategy` is especiialy interesting when restarting actors. This means that the failure of one actor will lead to restarting the entire group of actors under superviison.
+
 What makes this approach so interesting is that it makes error handling explicit yet concise.
 The wording `Escalate`, `Resume`, `Supervisor`, `OneForOneStrategy` perfectly fits into the domain.
 It also allows you to handle all failures relevant to an actor in a single place due to the messaging nature of the model you can get retries out of the box.
+Lastly, it allows you to express that some tasks may fail without your entire application having to suffer.
+Sometimes a simple restart of your actors is just enough.
 
 ## On the Scenic Route
 
