@@ -5,13 +5,14 @@ Smartphones makers have continuously increased the number of cores in their pack
 I may only be in my mid-twenties, but my smartphone has more processing power and four times as many cores as first Pentium IV 2.6Ghz.
 
 From a programmers perspective, concurrency is one the hardest things to program for.
-The challenge lies both in making the most of the cores available to us and to make sure that programs do not crash or corrupt our users data just because we did not anticipate the octo-core that he has.
+The challenge lies both in making the most of the available processing power and to make sure that programs do not crash or corrupt our users data just because we did not anticipate the octo-core that he has.
 
 Inherently, concurrency is hard for us to reason about.
 We humans are not as multitasking capable as we think we are.
 Listening to music while you browse the web is not multi-tasking.
 Even though you can probably hum along to your Spotify playlist, you are not concentrating on it.
 Its pure 'audible' memory.
+Hence, its just as hard to imagine how the code we just wrote _sequentially_ will run in _concurrently_
 
 There are multiple approaches to handling concurrency being used today.
 I'd like to give you an overview of the **Actor Model**, which has come and gone out of fashion but is undergoing a resurgence with Akka on the JVM.
