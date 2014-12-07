@@ -168,14 +168,16 @@ Sometimes a simple restart of your actors is just enough.
 ## On the Scenic Route
 
 Lets assume for a moment that `BobActor` and `AnnaActor` or not the only actors in our system.
-Let's go as far as assuming that we have 5 `BobActor` and `AnnaActors` each.
-They are perfect clones, so we don't care which of them takes up our acting gig.
+Let's go as far as imagining that we have 5 `BobActor` and `AnnaActors` each.
+They are perfect clones, so we don't care which of them picks up an acting gig.
 
-Each of them could have their own agent that gives them `JobMessages`, but that would mean that some of the Actors go underutilized depending on whoever tells their agent about new acting jobs.
+Each of them could have their own agent that gives them `JobMessages`, but that would mean that some of the actors would go underutilized depending on whoever tells their agent about new acting jobs.
 
 This is an area where the **Actor Model** shines.
 Since actors don't hold state there is no difference in sending a message to an actor A or actor B as long as both fulfil the same job.
-This allows us to have an entire swarm of actors just waiting to receive a message! As far as the sender is concerned, he sent the message to *any* of the right actors.
+Furthermore, we can combine multiple actors under a virtual address. After all, we just sending messages, not calling methods on specific instances of actors.
+This allows us to have an entire swarm of actors just waiting to receive a message!
+As far as the sender is concerned, he sent the message to *any* of the right actors.
 Which one ultimately does the work is of no relevance.
 
 Akka provides `Routes` for this.
@@ -183,7 +185,7 @@ You can write your own, but the ones that come out of the box cover most of the 
 The nature of these routes allows you to adapt dispatching messages to your actors.
 Here are some of the more interesting `Routes`:
 
-*   `RoundRobinRoutingLogic`: each of the actors in the pool just takes turns. Good for jobs that will roughly take the same time distributing the load evenly.
+*   `RoundRobinRoutingLogic`: each of the actors receives messages in turns. This is good for jobs that will roughly take the same time leading to an even load distribution.
 *   `SmallestMailboxRoutingLogic`: The time for the task may vary so assign the message to the actor with the least pending messages to keep the load approximately even.
 *   `ScatterGatherFirstCompletedRouteLogic`: Your task is idempotent and latency critical, so have all actors deal with it and the original sender gets the first response that comes through.
 
