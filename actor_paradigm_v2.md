@@ -1,4 +1,5 @@
 # A Look at Actors
+
 Concurrency has become more and more relevant over the last few years.
 From a programmers perspective, concurrency is one the hardest things to program for.
 The challenge lies both in making the most of the available processing power and to make sure that programs do not crash or corrupt our users data just because we did not anticipate the octo-core that he has.
@@ -8,10 +9,10 @@ We humans are not as multitasking capable as we think we are.
 Listening to music while you browse the web is not multi-tasking.
 Even though you can probably hum along to your Spotify playlist, you are not concentrating on it.
 Its pure 'audible' memory.
-Hence, its just as hard to imagine how the code we just wrote _sequentially_ will run in _concurrently_.
+Hence, its just as hard to imagine how the code we just wrote *sequentially* will run in *concurrently*.
 
 There are multiple approaches to handling concurrency being used today.
-The **Actor Model**  is a very interesting approach to concurrency as its core make you *think differently* about concurrency.
+The **Actor Model** is a very interesting approach to concurrency as its core make you *think differently* about concurrency.
 
 ## The approaches so far...
 
@@ -23,8 +24,8 @@ Functional programming on the other hand is a viable option when working on conc
 Hence multiple calls to the same function should yield in the same result, no-matter the order or context.
 
 ## ...and the Actor Model.
-The **Actor Model** is an interesting combination of functional- and object-oriented programming:
-From object-orientation it borrows encapsulation and abstraction, from functional programming it took the principle of statelessness and immutability.
+
+The **Actor Model** is an interesting combination of functional- and object-oriented programming: From object-orientation it borrows encapsulation and abstraction, from functional programming it took the principle of statelessness and immutability.
 
 At the very core of the **Actor model** are the actors themselves and the immutable messages they can send and receive.
 Actors are intended to be stateless and the only perceivable side-effect should be the messages they send to other actors.
@@ -37,8 +38,9 @@ You can imagine an Actor system like a little factory where co-workers send each
 Each works in isolation based on the information he has.
 
 ## Actor conversations for beginners
+
 So much for the basic ideas of the **Actor Model**.
-Let's look at some code using Scala/Javas framework **Akka**.
+Let's look at some code using Scala/Javas framework [Akka][1].
 
 One striking feature of Akkas implementation of the **Actor Model** is its clean, minimal interface.
 Below you can see a simple Akka Actor named `Bob` that will send a `Greeting` to an `Anna` Actor when he receives a `SayHello` message:
@@ -102,17 +104,18 @@ Since we don't know when we'll get the answer, the method returns a future onto 
       }
     }
 
+
 That completes our brief overview of how to use Actors within Akka.
 Let's have now move on to a topic where the **Actor Model** has a refreshing new approach: failure.
 
 ## Letting go
+
 Handling errors is hard.
 Doing so in a distributed, concurrent application is among the hardest.
 
 Akka has a very interesting approach to error handling: let it fail.
 From time to time actors will encounter problems, like an unplugged network cable or a failing database that that won't accept any new connections.
-Such failures are usually solved locally by logging and possibly rethrowing an exception
-After all, what else should we do?
+Such failures are usually solved locally by logging and possibly rethrowing an exception After all, what else should we do?
 
 Akkas approach on the other hand introduces clear semantics on what is supposed to happen: each actor has a supervisor that decides what how to react to the failure of a sibling.
 The action to be taken can be one of four:
@@ -134,6 +137,7 @@ Lastly, it allows you to express that some tasks may fail without your entire ap
 Sometimes a simple restart of your actors is just enough to solve the problem.
 
 ## On the Scenic Route
+
 Lets assume for a moment that `BobActor` and `AnnaActor` or not the only actors in our system.
 Let's go as far as imagining that we have 5 `BobActor` and `AnnaActors` each.
 They are perfect clones, so we don't care which of them picks up an acting gig.
@@ -143,8 +147,7 @@ This is an area where the **Actor Model** shines.
 Since actors don't hold state there is no difference in sending a message to an actor A or actor B as long as both fulfil the same job.
 We can even combine multiple actors under a virtual address.
 After all, we just sending messages, not calling methods on specific instances of actors.
-This allows us to have an entire swarm of actors just waiting to receive messages!
-As far as the sender is concerned, he sent the message to *any* of the right actors.
+This allows us to have an entire swarm of actors just waiting to receive messages! As far as the sender is concerned, he sent the message to *any* of the right actors.
 Which one ultimately does the work is of no relevance.
 
 Akka provides `Routes` for this.
@@ -169,6 +172,7 @@ Though fairly inefficient from a resource perspective, this promise the lowest l
 Akka makes it possible to configure such `Routes` in a configuration file, which allows you to adapt to changes in latency requirements with a simple change in configuration.
 
 # The Take-away
+
 We briefly touched on three elements of the **Actor Model** I'd like you take into consideration the next time you have to build concurrent system:
 
 From *Actor Conversations For Beginners* I'd like you to take the idea of isolating concurrency to the smallest possible unit and rely on immutable messages as a means of communication.
@@ -185,7 +189,18 @@ The beauty of the `Routes` is that we can embrace spilling some resources for sa
 Furthermore, it expemplifies that have a clean abstraction, such as the `Actor` and `ActorRef` allow us to slot in such routing mechanisms wihtout a lot of fuzz.
 
 # Reading material
+
 I recommend everyone to take a little time and study the **Actor Model**.
-If Akka and the JVM are not your thing, there is a whole buffet of frameworks for different languages ([Pulsar] for both Python and Clojure, [SObjectizer] for C++ or [Celluloid] for Ruby).
-For those who like to work on the classics first, I advise you to look into [Erlang] and [Elixir] first.
-Finally, for the academicians among you that want to read up on the underlying theory, have a look at Carl Hewitts papers from [1976] and [1977].
+If Akka and the JVM are not your thing, there is a whole buffet of frameworks for different languages ([Pulsar][2] for Python and [Puslar][3] forClojure, [CAF][4] for C++ or [Celluloid][5] for Ruby).
+For those who like to work on the classics first, I advise you to look into [Erlang][6] and [Elixir][7] first.
+Finally, for the academicians among you that want to read up on the underlying theory, have a look at Carl Hewitts papers from [1976][8] and [1977][9].
+
+ [1]: http://akka.io/
+ [2]: http://pythonhosted.org/pulsar/
+ [3]: https://github.com/puniverse/pulsar
+ [4]: http://actor-framework.org/
+ [5]: https://celluloid.io/
+ [6]: http://www.erlang.org/
+ [7]: http://elixir-lang.org/
+ [8]: https://www.cypherpunks.to/erights/history/actors/AIM-410.pdf
+ [9]: http://publications.csail.mit.edu/lcs/pubs/pdf/MIT-LCS-TR-194.pdf
