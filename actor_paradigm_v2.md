@@ -156,7 +156,7 @@ The difference in these strategies is in how far an _action_ is going to reach:
 What makes this approach so interesting is that it makes error handling explicit yet concise. The wording `Escalate`, `Resume`, `Supervisior`, `OneForOneStrategy` perfectly fits into the domain.
 It also allows you to handle all failures relevant to an actor in a single place due to the messaging nature of the model you can get retries out of the box.
 
-#On the Scenic Route
+## On the Scenic Route
 Lets assume for a moment that `BobActor` and `AnnaActor` or not the only actors in our system. Let's go as far as assuming that we have 5 `BobActor` and `AnnaActors` each. They are perfect clones, so we don't care which of them takes up our acting gig.
 
 Each of them could have their own agent that gives them `JobMessages`, but that would mean that some of the Actors go underutilzed depending on whoever tells their agent about new gigs.
@@ -182,4 +182,27 @@ Using the `ScatterGatherFirstCompleteRouteLogic` makes no sense for individual h
 Whoever finishes first will see his ad aired during halftime at the Super Bowl.
 Though fairly inefficient from a resource perspective, this promise the lowest latency for the orignal sender of the messages.
 
-Akka makes it possible to configure such `Routes` in a configuration file, which gives us a lot of power to adopt different strategies for individual parts of system and thus providing the right balance between latency and ressource utilisation.
+Akka makes it possible to configure such `Routes` in a configuration file, which allows you to adapt to changes in latency requirements witha simple change in configuration.
+
+# The Take-away
+We barely skimmed the surface of the **Actor Model** and one of its implementation for the JVM, Akka.
+This post was not meant to be an exhaustive introduction into either of those two.
+We briefly touched on three elements of the **Actor Model** I'd like you take into consideration the next time you have to build concurrent system:
+
+From _Actor Conversations For Beginners_ I'd like you to take the idea of isolating concurrency to the smallest possible unit and rely on immutable messages as a means of communication.
+Even just translating _immutable messages_ into other languages like Java will help you in the future.
+
+From _Letting Go_ I'd like you to think about your concurrent sections of code as little, idempotent tasks that could be just restarted or dropped if need be.
+Writing in that code in a way that you don't try to compensate failure by some complicated roll-back mechanism but just _roll-forward_ with a new attempt is not always easy and at time scary. We are so used fixing thisng we break, rather than just trying to mask our mistake by retrying.
+but once that is a possibility, code becomes easier and failure is just another regular code-path.
+
+Finally, from _On The Scenic Route_ I'd like you relise that sometimes, doing a little extra work is not waste but has real user value.
+During normal programming, we try to get the exact solution with the minimum amount of resources as fast as possible.
+We will got to great lengths when trying to _get it right_.
+The beaty of the `Routes` is that we can embrace spilling some resources for sake of latency.
+The task your actor has to accomplish might require a low latency, so instead of tweaking the actor the nth degree, you could just ahnd over the task to one of 20 and just see who answers first. Sure, you will have wasted 95% of the computing power, but you got the fastest result.
+
+I recommend everyone to take a little time and study the **Actor Model**.
+If Akka and the JVM are not your thing, there is a whole buffet of frameworks for different langauges ([Pulsar] for both Python and Clojure, [SObjectizer] for C++ or [Celluloid] for Ruby).
+For those who like to work on the classics first, I advise you to look into [Erlang] and [Elixir] first.
+Erlang was the first language to take the **Actor Model** in as part of the langauge itself by having so-called _co-processjjjjjjjjjjjjjkkkkkkkkk
