@@ -21,7 +21,7 @@ The most interesting aspect of the **Actor Model** is that its core ideas allow 
 ## The approaches so far...
 
 Different approaches have developed to handle situations where many things happen concurrently.
-The object-oriented paradigm offers inherent solution to write concurrent programs.
+The object-oriented paradigm offers no inherent solution to write concurrent programs.
 It has resorted to creating abstractions for locking primitives such as mutexes, semaphores and cyclic barriers and relying on programmers to use these carefully.
 
 Functional programming on the other hand is a viable option when working on concurrent programs as the the fundamental premise is that functions should be state and side-effect free.
@@ -30,7 +30,8 @@ Hence multiple calls to the same function should yield in the same result, no-ma
 ## ...and the Actor Model.
 
 A third approach which has had mixed popularity is the **Actor Model**.
-The **Actor Model** is an interesting combination of functional- and object-oriented programming: From object-orientation it borrowed encapsulation and abstraction, from functional programming it took the principle of statelessness and immutability.
+The **Actor Model** is an interesting combination of functional- and object-oriented programming:
+From object-orientation it borrows encapsulation and abstraction, from functional programming it took the principle of statelessness and immutability.
 
 At the very core of the **Actor model** are the actors themselves and the messages they can send and receive.
 Actors are intended to be stateless and the only perceivable side-effect should be messages as their side-effect.
@@ -41,7 +42,7 @@ This means that within an actor, there is no concurrency at all.
 One important property that the messages have to fulfil to make this viable, is that they are to be immutable.
 Once a message is out, there is no going back or changing it mid-flight.
 You can imagine an Actor system like a little factory where co-workers send each other sealed envelops with orders or information.
-Each works in isolation based on the information he has.
+Each works in isolation based on the information he has locally.
 
 ## Actor conversations for beginners
 
