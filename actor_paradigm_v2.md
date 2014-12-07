@@ -1,17 +1,16 @@
-# Looking at concurrency through the lens of Actors
-> Figure out a better title
+# A Look at Actors
 
 Concurrency has become more and more relevant over the last few years.
 Smartphones makers have continuously increased the number of cores in their package,
 firmly cementing _multitasking_ and _multi-processing_ in our everyday life.
 I may only be in my mid-twenties, but my smartphone has more processing power and four times as many cores as first Pentium IV 2.6Ghz.
 
-From a programmers perspective, concurrency is one the hardest things to programm for.
+From a programmers perspective, concurrency is one the hardest things to program for.
 The challenge lies both in making the most of the cores available to us and to make sure that programs do not crash or corrupt our users data just because we did not anticipate the octo-core that he has.
 
 Inherently, concurrency is hard for us to reason about.
 We humans are not as multitasking capable as we think we are.
-Listening to musik while you browse the web is not multi-tasking.
+Listening to music while you browse the web is not multi-tasking.
 Even though you can probably hum along to your Spotify playlist, you are not concentrating on it.
 Its pure 'audible' memory.
 
@@ -43,7 +42,7 @@ You can imagine an Actor system like a little factory where co-workers send each
 Each works in isolation based on the information he has.
 
 ## Actor conversations for beginners
-So much for the basic ideas of the **Actor Model**. Let's look at some code using Scala/Javas framework **Akka.**
+So much for the basic ideas of the **Actor Model**. Let's look at some code using Scala/Javas framework **Akka**.
 
 One striking feature of Akkas implementation of the   **Actor Model** is its clean, minimal abstraction.
 Below you can see a simple Akka Actor named `Bob` that will send a `Greeting` to an `Anna` Actor when he gets a `SayHello` message:
@@ -63,7 +62,7 @@ class BobActor extends Actor {
 
 class AnnaActor extends Actor {
   def receive = {
-    case Greeting(message) => log.info(s"I was greeted with '$mesasge'" )
+    case Greeting(message) => log.info(s"I was greeted with '$message'" )
     case _ => unhandled(message)
   }
 }
@@ -79,7 +78,7 @@ Once we have an `ActorRef` pointing to an `AnnaActor`, all we have to do is _tel
 In Scala we are allowed to have fairly arbitrary methods names, so _tell_ is shortened to a simple `!`.
 Here, `BobActor` creates a new instance of the immutable case-object `Greeting(message: String)` with the greeting `"Hi Anna!"` and sends it on its way.
 
-`BobActor` and `AnnaActor` model persons and as such should be able to almost have a conversation. Lets extend `BobActor` to _ask_ `AnnaActor` if she knows of any current acting giggs:
+`BobActor` and `AnnaActor` model persons and as such should be able to almost have a conversation. Lets extend `BobActor` to _ask_ `AnnaActor` if she knows of any current acting jobs:
 
 
 ```scala
@@ -113,12 +112,12 @@ And this is how `AnnaActor` would respond to that message using the `sender` met
 class AnnaActor extends Actor {
   val random = new Random
   def receive = {
-    case Greeting(message) => log.info(s"I was greeted with '$mesasge'" )
+    case Greeting(message) => log.info(s"I was greeted with '$message'" )
     case ActingGig => {
        if random.nextBoolean {
-         sender ! Answer("Sure, there is an opening for the Globe Theater")
+         sender ! Answer("Sure, there is an opening for the Globe Theatre")
        } else {
-         sender ! Answer("Sorry, I have no acting gigs.")
+         sender ! Answer("Sorry, I have no acting jobs right now.")
        }
     }
     case _ => unhandled(message)
@@ -153,13 +152,13 @@ The difference in these strategies is in how far an _action_ is going to reach:
   * `OneForOneStrategy` will apply the action only to the failing actor
   * `AllForOneStrategy` will apply to **all** of the supervised siblings, whether they failed themselves or not
 
-What makes this approach so interesting is that it makes error handling explicit yet concise. The wording `Escalate`, `Resume`, `Supervisior`, `OneForOneStrategy` perfectly fits into the domain.
+What makes this approach so interesting is that it makes error handling explicit yet concise. The wording `Escalate`, `Resume`, `Supervisor`, `OneForOneStrategy` perfectly fits into the domain.
 It also allows you to handle all failures relevant to an actor in a single place due to the messaging nature of the model you can get retries out of the box.
 
 ## On the Scenic Route
 Lets assume for a moment that `BobActor` and `AnnaActor` or not the only actors in our system. Let's go as far as assuming that we have 5 `BobActor` and `AnnaActors` each. They are perfect clones, so we don't care which of them takes up our acting gig.
 
-Each of them could have their own agent that gives them `JobMessages`, but that would mean that some of the Actors go underutilzed depending on whoever tells their agent about new gigs.
+Each of them could have their own agent that gives them `JobMessages`, but that would mean that some of the Actors go underutilized depending on whoever tells their agent about new acting jobs.
 
 This is an area where the **Actor Model** shines.
 Since actors don't hold state there is no difference in sending a message to an actor A or actor B as long as both fulfil the same job.
@@ -174,15 +173,15 @@ The nature of these routes allows you to adapt dispatching messages to your acto
 In our example such a `Route` would be the agent.
 Were we to use a `RoundRobinRoutingLogic` then all our actors would be treated equally.  In most cases this probably safe initial approach.
 
-Were we to use a `SmallestMailboxRoutingLogic` then our agent would take into account that some `JobMessages` (*acting gings*) such as "Filming Avatar" take longer than filming a Kellogs comercial.
+Were we to use a `SmallestMailboxRoutingLogic` then our agent would take into account that some `JobMessages` (*acting jobs*) such as "Filming Avatar" take longer than filming a Kelloggs commercial.
 Faster actors with a shorter mailbox will thus be scheduled with a higher priority.
 This should reduce the latency in a system with variable task runtime.
 
-Using the `ScatterGatherFirstCompleteRouteLogic` makes no sense for individual human actors. But think about an actor being a production company. A client such as Kellogs will put in a request for a finished ad, and multiple `ProductionCompanyActors` will get the task.
+Using the `ScatterGatherFirstCompleteRouteLogic` makes no sense for individual human actors. But think about an actor being a production company. A client such as Kelloggs will put in a request for a finished ad, and multiple `ProductionCompanyActors` will get the task.
 Whoever finishes first will see his ad aired during halftime at the Super Bowl.
-Though fairly inefficient from a resource perspective, this promise the lowest latency for the orignal sender of the messages.
+Though fairly inefficient from a resource perspective, this promise the lowest latency for the original sender of the messages.
 
-Akka makes it possible to configure such `Routes` in a configuration file, which allows you to adapt to changes in latency requirements witha simple change in configuration.
+Akka makes it possible to configure such `Routes` in a configuration file, which allows you to adapt to changes in latency requirements with a simple change in configuration.
 
 # The Take-away
 We barely skimmed the surface of the **Actor Model** and one of its implementation for the JVM, Akka.
@@ -193,16 +192,15 @@ From _Actor Conversations For Beginners_ I'd like you to take the idea of isolat
 Even just translating _immutable messages_ into other languages like Java will help you in the future.
 
 From _Letting Go_ I'd like you to think about your concurrent sections of code as little, idempotent tasks that could be just restarted or dropped if need be.
-Writing in that code in a way that you don't try to compensate failure by some complicated roll-back mechanism but just _roll-forward_ with a new attempt is not always easy and at time scary. We are so used fixing thisng we break, rather than just trying to mask our mistake by retrying.
+Writing in that code in a way that you don't try to compensate failure by some complicated roll-back mechanism but just _roll-forward_ with a new attempt is not always easy and at time scary. We are so used fixing things we break, rather than just trying to mask our mistake by retrying.
 but once that is a possibility, code becomes easier and failure is just another regular code-path.
 
-Finally, from _On The Scenic Route_ I'd like you relise that sometimes, doing a little extra work is not waste but has real user value.
+Finally, from _On The Scenic Route_ I'd like you realise that sometimes, doing a little extra work is not waste but has real user value.
 During normal programming, we try to get the exact solution with the minimum amount of resources as fast as possible.
 We will got to great lengths when trying to _get it right_.
-The beaty of the `Routes` is that we can embrace spilling some resources for sake of latency.
-The task your actor has to accomplish might require a low latency, so instead of tweaking the actor the nth degree, you could just ahnd over the task to one of 20 and just see who answers first. Sure, you will have wasted 95% of the computing power, but you got the fastest result.
+The beauty of the `Routes` is that we can embrace spilling some resources for sake of latency.
+The task your actor has to accomplish might require a low latency, so instead of tweaking the actor the nth degree, you could just hand over the task to one of 20 and just see who answers first. Sure, you will have wasted 95% of the computing power, but you got the fastest result.
 
 I recommend everyone to take a little time and study the **Actor Model**.
-If Akka and the JVM are not your thing, there is a whole buffet of frameworks for different langauges ([Pulsar] for both Python and Clojure, [SObjectizer] for C++ or [Celluloid] for Ruby).
+If Akka and the JVM are not your thing, there is a whole buffet of frameworks for different languages ([Pulsar] for both Python and Clojure, [SObjectizer] for C++ or [Celluloid] for Ruby).
 For those who like to work on the classics first, I advise you to look into [Erlang] and [Elixir] first.
-Erlang was the first language to take the **Actor Model** in as part of the langauge itself by having so-called _co-processjjjjjjjjjjjjjkkkkkkkkk
