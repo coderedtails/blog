@@ -169,25 +169,23 @@ Though fairly inefficient from a resource perspective, this promise the lowest l
 Akka makes it possible to configure such `Routes` in a configuration file, which allows you to adapt to changes in latency requirements with a simple change in configuration.
 
 # The Take-away
-We barely skimmed the surface of the **Actor Model** and one of its implementation for the JVM, Akka.
-This post was not meant to be an exhaustive introduction into either of those two.
 We briefly touched on three elements of the **Actor Model** I'd like you take into consideration the next time you have to build concurrent system:
 
 From *Actor Conversations For Beginners* I'd like you to take the idea of isolating concurrency to the smallest possible unit and rely on immutable messages as a means of communication.
 Even just translating *immutable messages* into other languages like Java will help you in the future.
 
 From *Letting Go* I'd like you to think about your concurrent sections of code as little, idempotent tasks that could be just restarted or dropped if need be.
-Writing in that code in a way that you don't try to compensate failure by some complicated roll-back mechanism but just *roll-forward* with a new attempt is not always easy and at time scary.
+We tend to write complicated roll-back forward when we could write our regular operation in a way that we can repeat it indefinitly.
 We are so used fixing things we break, rather than just trying to mask our mistake by retrying.
-but once that is a possibility, code becomes easier and failure is just another regular code-path.
 
 Finally, from *On The Scenic Route* I'd like you realise that sometimes, doing a little extra work is not waste but has real user value.
 During normal programming, we try to get the exact solution with the minimum amount of resources as fast as possible.
 We will got to great lengths when trying to *get it right*.
-The beauty of the `Routes` is that we can embrace spilling some resources for sake of latency.
-The task your actor has to accomplish might require a low latency, so instead of tweaking the actor the nth degree, you could just hand over the task to one of 20 and just see who answers first.
-Sure, you will have wasted 95% of the computing power, but you got the fastest result.
+The beauty of the `Routes` is that we can embrace spilling some resources for sake of overall performance.
+Furthermore, it expemplifies that have a clean abstraction, such as the `Actor` and `ActorRef` allow us to slot in such routing mechanisms wihtout a lot of fuzz.
 
+# Reading material
 I recommend everyone to take a little time and study the **Actor Model**.
 If Akka and the JVM are not your thing, there is a whole buffet of frameworks for different languages ([Pulsar] for both Python and Clojure, [SObjectizer] for C++ or [Celluloid] for Ruby).
 For those who like to work on the classics first, I advise you to look into [Erlang] and [Elixir] first.
+Finally, for the academicians among you that want to read up on the underlying theory, have a look at Carl Hewitts papers from [1976] and [1977].
