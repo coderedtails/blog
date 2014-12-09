@@ -1,8 +1,8 @@
-# A Look at Actors
+# Look at Actors
 
 Concurrency has become more and more relevant over the last few years.
 From a programmers perspective, concurrency is one the hardest things to program for.
-The challenge lies both in making the most of the available processing power and ensuring that rograms do not crash or corrupt our users data just because we did not anticipate his octa-core.
+The challenge lies both in making the most of the available processing power and ensuring that programs do not crash or corrupt our users data just because we did not anticipate his octa-core.
 
 Inherently, concurrency is hard for us to reason about.
 We humans are not as multitasking capable as we think we are.
@@ -25,16 +25,16 @@ Hence multiple calls to the same function should yield in the same result, no ma
 
 ## ...and the Actor Model.
 
-The **Actor Model** is an interesting combination of functional and object-oriented programming: it borrows encapsulation and abstraction from object-orientation and it took the principles of statelessness and immutability from functional programming.
+The **Actor Model** is an interesting combination of functional and object-oriented programming: it borrows encapsulation and abstraction from object-orientation and takes the principles of statelessness and immutability from functional programming.
 
 At the very core of the **Actor model** are the actors themselves and the immutable messages they can send and receive.
 Actors are intended to be stateless and the only perceivable side-effect should be the messages they send to other actors.
-They are long-lived objects whereas messages live just long enough to be consumed by an actor.
+They are long-lived objects, whereas messages live just long enough to be consumed by an actor.
 To overcome this disparity, actors have a *mailbox* which is managed by the underlying system.
 An actor is guaranteed to only process a single message at a time.
 This means that within an actor, there is no concurrency at all.
 The fact that the messages are immutable ensures that two actors will never have a shared resource.
-You can imagine an Actor system like a little factory where co-workers send each other sealed envelopes with orders or information.
+You can imagine an actor system like a little factory where co-workers send each other sealed envelopes with orders or information.
 Each one works in isolation based on the information he has.
 
 ## Actor conversations for beginners
@@ -43,7 +43,7 @@ So much for the basic ideas of the **Actor Model**.
 Let's look at some code using Scala/Java's framework [Akka][1].
 
 One striking feature of Akka's implementation of the **Actor Model** is its clean, minimal interface.
-Below you can see a simple Akka Actor named `Bob` that will send a `Greeting` to an `Anna` Actor when he receives a `SayHello` message:
+Below you can see a simple Akka actor named `Bob` that will send a `Greeting` to an `Anna` actor when he receives a `SayHello` message:
 
     case object SayHello
     case object Greeting(message: String)
@@ -69,14 +69,14 @@ All work happens in the `receive(message: Any)` method.
 It takes `Any` as a parameter, which means you can send your actors any message you want.
 
 To send an actor a message, you first must get a reference to it.
-In this case we create the `anna` Actor on the fly during initialization.
+In this case we create the `anna` actor on the fly during initialisation.
 An important aspect here is maintaining abstraction.
-The method `actorOf` will always return an instance of an `ActorRef`, rather than the concrete type of Actor.
-Once we have an `ActorRef` pointing to an `AnnaActor`, all we have to do is *tell* it something, which is done with the handy `!` method (_Scala allows arbitrary method names_).
+The method `actorOf` will always return an instance of an `ActorRef`, rather than the concrete type of the actor.
+Once we have an `ActorRef` pointing to an `AnnaActor`, all we have to do is *tell* it something, which is done with the handy `!` method (*Scala allows arbitrary method names*).
 In the above example `BobActor` creates a new instance of the immutable case-object `Greeting(message: String)` with the greeting `"Hi Anna!"` and sends it on its way.
 
 `BobActor` and `AnnaActor` model persons and as such should be able to almost have a conversation.
-Lets extend `BobActor` to *ask* `AnnaActor` if she knows of any current jobs.
+Let's extend `BobActor` to *ask* `AnnaActor` if she knows of any current jobs.
 The difference between *tell* and *ask* is that we expect an answer from *ask*.
 Since we don't know when we'll get the answer, the method returns a `Future` onto which we can attach a callback:
 
@@ -105,7 +105,7 @@ Since we don't know when we'll get the answer, the method returns a `Future` ont
     }
 
 
-That completes our brief overview of how to use Actors within Akka.
+That completes our brief overview of how to use actors within Akka.
 Let's now move on to a topic where the **Actor Model** has a refreshing new approach: failure.
 
 ## Letting go
@@ -125,28 +125,28 @@ The action to be taken can be one of four:
 *   Resume: You can't win them all. Drop the message and proceed with the next one in the mailbox.
 *   Stop: Discontinue processing and remove the actor.
 
-Furthermore, there are two *SupervisionStrategies* that are applied: `OneForOneStrategy` or `AllForOneStrategy`.
+Furthermore, there are two *SupervisionStrategies* that can be applied: `OneForOneStrategy` or `AllForOneStrategy`.
 The `OneForOneStrategy` means that an action will only be applied to the failing actor.
 `AllForOneStrategy` is interesting when restarting actors.
 This means that the failure of one actor will lead to restarting the entire group of actors under supervision.
 
 This is interesting because it makes error handling explicit yet concise.
 The words `Escalate`, `Resume`, `Supervisor`, `OneForOneStrategy` perfectly fit into the domain.
-It also allows you to handle all failures relevant to an actor in a single place due to the messaging nature of the model you can get retries out of the box.
+It also allows you to handle all failures relevant to an actor in a single place and due to the messaging nature of the model you get retries out of the box.
 Lastly, it allows you to express that some tasks may fail without your entire application having to suffer.
 Sometimes a simple restart of your actors is just enough to solve the problem.
 
 ## The Scenic Route
 
-Lets assume for a moment that `BobActor` and `AnnaActor` or not the only actors in our system.
+Let's assume for a moment that `BobActor` and `AnnaActor` are not the only actors in our system.
 Let's go as far as imagining that we have 5 `BobActor` and `AnnaActors` each.
 They are perfect clones, so we don't care which of them picks up an acting gig.
-How do make sure we make the most of these actor clones?
+How do we make the most of these actor clones?
 
 This is an area where the **Actor Model** shines.
-Since actors don't hold state there is no difference in sending a message to an actor A or actor B as long as both fulfil the same job.
+Since actors don't hold state, there is no difference in sending a message to an actor A or actor B as long as both fulfil the same job.
 We can even combine multiple actors under a virtual address.
-After all, we just sending messages, not calling methods on specific instances of actors.
+After all, we are just sending messages, not calling methods on specific instances of actors.
 This allows us to have an entire swarm of actors just waiting to receive messages! As far as the sender is concerned, he sent the message to *any* of the right actors.
 Which one ultimately does the work is of no relevance.
 
@@ -167,7 +167,7 @@ Using the `ScatterGatherFirstCompleteRouteLogic` makes no sense for individual h
 But think about an actor being a production company.
 A client such as Kellogg's will put in a request for a finished ad, and multiple `ProductionCompanyActors` will get the task.
 Whoever finishes first will see his ad aired at the Super Bowl halftime show.
-Though fairly inefficient from a resource perspective, this promise the lowest latency for the original sender of the messages.
+Though fairly inefficient from a resource perspective, this promises the lowest latency for the original sender of the messages.
 
 Akka makes it possible to configure such `Routes` in a configuration file, which allows you to adapt to changes in latency requirements with a simple change in configuration.
 
@@ -175,16 +175,12 @@ Akka makes it possible to configure such `Routes` in a configuration file, which
 
 We briefly touched on three elements of the **Actor Model** I'd like you take into consideration the next time you have to build concurrent system:
 
-* Isolate concurrency to the smallest possible unit and rely on immutable messages as a means of communication.
-    Even just translating *immutable messages* into other languages like Java will help you in the future.
+*   Isolate concurrency to the smallest possible unit and rely on immutable messages as a means of communication.
+Even just translating *immutable messages* into other languages like Java will help you in the future.
 
-* Think about your concurrent sections of code as little, idempotent tasks that could be just restarted or dropped if need be.
-    Rolling back broken data is not necessary if you can retry the operation multiple times.
+*   Think about your concurrent sections of code as little, idempotent tasks that could be just restarted or dropped if need be. Rolling back broken data is not necessary if you can retry the operation multiple times.
 
-* Realise that sometimes, doing a little extra work is not waste but has real user value.
-    We will got to great lengths when trying to *get the performance just right*.
-    The beauty of the `Routes` is that we can embrace spilling some resources for sake of overall performance.
-    Furthermore, it expemplifies that have a clean abstraction, such as the `Actor` and `ActorRef` allow us to slot in such routing mechanisms wihtout a lot of fuzz.
+*   Realise that sometimes, doing a little extra work is not waste but has real user value. We will got to great lengths when trying to *get the performance just right*. The beauty of the `Routes` is that we can embrace spilling some resources for sake of overall performance. Furthermore, it expemplifies that have a clean abstraction, such as the `Actor` and `ActorRef` allow us to slot in such routing mechanisms wihtout a lot of fuzz.
 
 # Reading material
 
